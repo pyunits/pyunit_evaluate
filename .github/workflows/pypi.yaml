@@ -26,7 +26,7 @@ jobs:
 
       - name: 测试
         run: |
-          uv pip install pytest
+          pip install pytest
           pytest
 
       - name: 构建Python包并上传到PYPI
