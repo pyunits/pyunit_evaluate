@@ -15,8 +15,8 @@ class Edge:
         :param node2: 节点2
         :param score: 分数
         """
-        self.node1 = node1
-        self.node2 = node2
+        self.node1 = node1 if isinstance(node1,str) else str(node1)
+        self.node2 = node2 if isinstance(node2,str) else str(node2)
         self.score = score
 
     def __str__(self):
