@@ -15,19 +15,18 @@ class MAP(TopK):
     def __matmul__(self, k: int) -> float:
         values = []
 
-        for node, edges in self.predict.group('node1').items():
-            if len(edges) > 1:
-                edges = edges.sort(key=lambda x: x.score, reverse=True)
-            edges = edges[:k]
-            value, one = 0, 0
+        for edges in self.predict_group(k):
+            count, pos = 0, 0
             for idx, item in enumerate(edges.items(), start=1):
-                edge, flag = self.true.has_edge(item)
-                # 只记录真实存在的链路
-                if flag and edge.score == 1:
-                    one += 1
-                    value += one / idx
+                edge = self.true.has_edge(item)
+                if edge and edge.score == 1:
+                    pos += 1
+                    count += pos / idx
 
-            ap = (value / one) if one else 0
+            if self.exclude_zero and pos == 0:
+                continue
+
+            ap = count / pos if pos != 0 else 0
             values.append(ap)
 
-        return round(sum(values) / len(values), self.k)
+        return self.mean(values)

@@ -249,7 +249,7 @@ wheels = [
 
 [[package]]
 name = "pyunit-evaluate"
-version = "2025.5.18"
+version = "2025.5.22"
 source = { virtual = "." }
 dependencies = [
     { name = "numpy", version = "1.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },

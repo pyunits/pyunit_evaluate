@@ -6,8 +6,16 @@ from pyunit_evaluate import topk
 
 
 def get_edges(num: int):
-    node = np.random.randint(0, 100, (num, 2))
-    score = np.random.rand(num, 1)
+    edges = []
+    for e1 in range(0, num):
+        for e2 in range(0, num):
+            if e1 == e2:
+                continue
+            edges.append((e1, e2))
+
+    node = np.array(edges, dtype=int)
+
+    score = np.random.rand(node.shape[0], 1)
     value = np.concat([node, score], axis=1)
     return value
 
@@ -18,44 +26,39 @@ class TestCase(unittest.TestCase):
         ## 节点1  节点2 分数
         ## n1   n2  0.8
         ## n1   n3  0.7
-        
+
         super(TestCase, self).__init__(*args, **kwargs)
         np.random.seed(22)
-        predict = get_edges(100)
+        predict = get_edges(20)
         self.predict = topk.Edges(predict)
 
         predict[:, 2] = np.random.randint(0, 2, predict.shape[0])
         self.true = topk.Edges(predict)
 
     def test_mrr(self):
-        mr = topk.MRR(predict=self.predict, true=self.true, keep=4)
+        mr = topk.MRR(predict=self.predict, true=self.true)
         value = mr @ 5
-        self.assertEqual(value, 0.767)
+        self.assertEqual(value, 0.4279)
 
     def test_map(self):
-        ap = topk.MAP(predict=self.predict, true=self.true, keep=4)
+        ap = topk.MAP(predict=self.predict, true=self.true)
         value = ap @ 5
-        self.assertEqual(value, 0.5624)
+        self.assertEqual(value, 0.6413)
 
     def test_hits(self):
-        hit = topk.Hits(predict=self.predict, true=self.true, keep=4)
-        value = hit @ 2
-        self.assertEqual(value, 0.8571)
+        hit = topk.Hits(predict=self.predict, true=self.true)
+        value = hit @ 5
+        self.assertEqual(value, 0.9)
 
     def test_precision(self):
-        precisions = topk.Precision(predict=self.predict, true=self.true, keep=4)
+        precisions = topk.Precision(predict=self.predict, true=self.true)
         value = precisions @ 5
-        self.assertEqual(value, 0.5101)
-
-    def test_hr(self):
-        hrs = topk.HR(predict=self.predict, true=self.true, keep=4)
-        value = hrs @ 5
-        self.assertEqual(value, 0.6557)
+        self.assertEqual(value, 0.47)
 
     def test_ndc(self):
-        ndc = topk.NDCG(predict=self.predict, true=self.true, keep=4)
+        ndc = topk.NDCG(predict=self.predict, true=self.true)
         value = ndc @ 5
-        self.assertEqual(value, 0.6296)
+        self.assertEqual(value, 0.7807)
 
     def test_edges(self):
         es = topk.Edges()

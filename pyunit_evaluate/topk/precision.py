@@ -15,15 +15,19 @@ class Precision(TopK):
     def __matmul__(self, k: int) -> float:
         values = []
 
-        for node, edges in self.predict.group('node1').items():
-            edges = edges[:k]
+        for edges in self.predict_group(k):
             one = 0
             for item in edges.items():
-                # 判断是正样本
-                edge, flag = self.true.has_edge(item)
-                if flag and edge.score == 1:
+                if item.score < 0.5:
+                    continue
+
+                edge = self.true.has_edge(item)
+                if edge and edge.score == 1:
                     one += 1
+
+            if self.exclude_zero and one == 0:
+                continue
 
             values.append(one / len(edges))
 
-        return round(sum(values) / len(values), self.k)
+        return self.mean(values)

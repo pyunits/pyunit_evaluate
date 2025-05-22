@@ -15,8 +15,8 @@ class Edge:
         :param node2: 节点2
         :param score: 分数
         """
-        self.node1 = node1 if isinstance(node1,str) else str(node1)
-        self.node2 = node2 if isinstance(node2,str) else str(node2)
+        self.node1 = node1 if isinstance(node1, str) else str(node1)
+        self.node2 = node2 if isinstance(node2, str) else str(node2)
         self.score = score
 
     def __str__(self):
@@ -136,7 +136,7 @@ class Edges:
 
     @match.register
     def _(self, edge: Edge) -> Optional[Edge]:
-        edge, _ = self.has_edge(edge)
+        edge= self.has_edge(edge)
         return edge
 
     def sort(self, *, key, reverse=False) -> 'Edges':
@@ -155,11 +155,9 @@ class Edges:
         """迭代 支持 for 循环"""
         return self.__edges__.__iter__()
 
-    def has_edge(self, edge: Edge) -> (Optional[Edge], bool):
+    def has_edge(self, edge: Edge) -> Optional[Edge]:
         """判断时候存在这样的边"""
-        if edge.uuid() in self._edge_index_:
-            return self._edge_index_[edge.uuid()], True
-        return None, False
+        return self._edge_index_.get(edge.uuid())
 
     def group(self, column: Literal['node1', 'node2'] = 'node1') -> Dict[str, 'Edges']:
         value = sorted(self.__edges__, key=lambda x: x.node1 if column == 'node1' else x.node2)

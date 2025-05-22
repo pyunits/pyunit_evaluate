@@ -19,19 +19,17 @@ class NDCG(TopK):
     def __matmul__(self, k: int) -> float:
         values = []
 
-        for node, edges in self.predict.group('node1').items():
-            if len(edges) > 1:
-                edges = edges.sort(key=lambda x: x.score, reverse=True)
-
-            edges = edges[:k]
+        for edges in self.predict_group(k):
             dcg, i_dcg = 0, 0
-
             for idx, item in enumerate(edges.items(), start=1):
                 # 判断是正样本
-                edge, flag = self.true.has_edge(item)
-                if flag and edge.score == 1:
-                    dcg += idx / math.log2(idx + 1)
-                i_dcg += 1 / math.log2(idx + 1)
+                edge = self.true.has_edge(item)
+                if edge and edge.score == 1:
+                    dcg += item.score / math.log2(idx + 1)
+                    i_dcg += 1 / math.log2(idx + 1)
 
-            values.append(dcg / i_dcg)
-        return round(sum(values) / len(values), self.k)
+            if self.exclude_zero and dcg == 0:
+                continue
+
+            values.append(dcg / i_dcg if i_dcg != 0 else 0)
+        return self.mean(values)

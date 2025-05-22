@@ -1,7 +1,6 @@
 from .edges import Edge, Edges
-from .hits import Hits
+from .hits import Hits, HR
 from .map import MAP
 from .mrr import MRR
-from .hr import HR
 from .ndcg import NDCG
 from .precision import Precision

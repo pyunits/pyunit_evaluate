@@ -1,4 +1,3 @@
-from .edges import Edges
 from .topk import TopK
 
 
@@ -17,18 +16,19 @@ class Hits(TopK):
     """
 
     def __matmul__(self, k: int) -> float:
-        count = 0
+        values = []
 
-        # 只要正样本
-        true = self.true.filter(key=lambda e: e.score == 1)
+        for predicts in self.predict_group(k):
+            positive = 0
+            for predict in predicts:
+                edge = self.true.has_edge(predict)
+                if edge and edge.score == 1:
+                    positive = 1
+                    break
 
-        if true is None:
-            return 0
+            values.append(positive)
 
-        for sample in true:
-            predict = self.predict.find_left(sample.node1)
-            predict = predict.sort(key=lambda e: e.score, reverse=True)
-            predict: Edges = predict[:k]
-            count += 1 if predict.match(sample) else 0
+        return self.mean(values)
 
-        return round(count / len(true), self.k)
+
+HR = Hits
