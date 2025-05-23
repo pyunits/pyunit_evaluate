@@ -18,7 +18,7 @@ class Precision(TopK):
         for edges in self.predict_group(k):
             one = 0
             for item in edges.items():
-                if item.score < 0.5:
+                if item.score < self.threshold:
                     continue
 
                 edge = self.true.has_edge(item)

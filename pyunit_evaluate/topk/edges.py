@@ -36,6 +36,9 @@ class Edge:
         """有方向判断所有相同"""
         return self.node1 == edge.node1 and self.node2 == edge.node2 and self.score == edge.score
 
+    def __eq__(self, edge: 'Edge') -> bool:
+        return self.same(edge)
+
     def uuid(self) -> str:
         return "{} -> {}".format(self.node1, self.node2)
 
@@ -136,7 +139,7 @@ class Edges:
 
     @match.register
     def _(self, edge: Edge) -> Optional[Edge]:
-        edge= self.has_edge(edge)
+        edge = self.has_edge(edge)
         return edge
 
     def sort(self, *, key, reverse=False) -> 'Edges':

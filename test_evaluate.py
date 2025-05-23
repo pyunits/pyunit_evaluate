@@ -1,11 +1,17 @@
+import os
+import random
 import unittest
 
 import numpy as np
 
 from pyunit_evaluate import topk
 
+os.environ["OMP_NUM_THREADS"] = "1"  # 禁用多线程
+
 
 def get_edges(num: int):
+    np.random.seed(22)
+    random.seed(22)
     edges = []
     for e1 in range(0, num):
         for e2 in range(0, num):
@@ -15,9 +21,16 @@ def get_edges(num: int):
 
     node = np.array(edges, dtype=int)
 
-    score = np.random.rand(node.shape[0], 1)
-    value = np.concat([node, score], axis=1)
-    return value
+    score = np.random.rand(node.shape[0], 1).astype(np.float32)
+    label = np.random.randint(0, 2, (node.shape[0], 1))
+    predict = np.concat([node, score], axis=1, dtype=np.float32)
+    true = np.concat([node, label], axis=1, dtype=np.float32)
+    return predict, true
+
+
+predict_, true_ = get_edges(20)
+predicts = topk.Edges(predict_)
+trues = topk.Edges(true_)
 
 
 class TestCase(unittest.TestCase):
@@ -28,35 +41,31 @@ class TestCase(unittest.TestCase):
         ## n1   n3  0.7
 
         super(TestCase, self).__init__(*args, **kwargs)
-        np.random.seed(22)
-        predict = get_edges(20)
-        self.predict = topk.Edges(predict)
-
-        predict[:, 2] = np.random.randint(0, 2, predict.shape[0])
-        self.true = topk.Edges(predict)
+        self.predict = predicts
+        self.true = trues
 
     def test_mrr(self):
-        mr = topk.MRR(predict=self.predict, true=self.true)
+        mr = topk.MRR(predict=self.predict, true=self.true, group=True)
         value = mr @ 5
-        self.assertEqual(value, 0.4279)
+        self.assertEqual(value, 0.4533)
 
     def test_map(self):
-        ap = topk.MAP(predict=self.predict, true=self.true)
+        ap = topk.MAP(predict=self.predict, true=self.true, group=True)
         value = ap @ 5
-        self.assertEqual(value, 0.6413)
+        self.assertEqual(value, 0.9)
 
     def test_hits(self):
-        hit = topk.Hits(predict=self.predict, true=self.true)
+        hit = topk.Hits(predict=self.predict, true=self.true, group=True)
         value = hit @ 5
         self.assertEqual(value, 0.9)
 
     def test_precision(self):
-        precisions = topk.Precision(predict=self.predict, true=self.true)
+        precisions = topk.Precision(predict=self.predict, true=self.true, group=True)
         value = precisions @ 5
         self.assertEqual(value, 0.47)
 
     def test_ndc(self):
-        ndc = topk.NDCG(predict=self.predict, true=self.true)
+        ndc = topk.NDCG(predict=self.predict, true=self.true, group=True)
         value = ndc @ 5
         self.assertEqual(value, 0.7807)
 

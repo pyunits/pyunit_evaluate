@@ -16,17 +16,28 @@ class MAP(TopK):
         values = []
 
         for edges in self.predict_group(k):
-            count, pos = 0, 0
+            tp, pn, ap, up = [], 0, 0, 0
+
             for idx, item in enumerate(edges.items(), start=1):
                 edge = self.true.has_edge(item)
                 if edge and edge.score == 1:
-                    pos += 1
-                    count += pos / idx
+                    pn += 1
 
-            if self.exclude_zero and pos == 0:
+                    if item.score >= self.threshold:
+                        tp.append(1)
+                    else:
+                        tp.append(0)
+
+            for idx, _ in enumerate(range(pn), start=1):
+                tp_value = sum(tp[:idx])
+                precision = tp_value / idx
+                recall = tp_value / pn
+                ap += precision * (recall - up)
+                up = recall
+
+            if self.exclude_zero and ap == 0:
                 continue
 
-            ap = count / pos if pos != 0 else 0
             values.append(ap)
 
         return self.mean(values)
