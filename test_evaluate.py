@@ -45,9 +45,9 @@ class TestCase(unittest.TestCase):
         self.true = trues
 
     def test_mrr(self):
-        mr = topk.MRR(predict=self.predict, true=self.true, group=True)
+        mr = topk.MRR(predict=self.predict, true=self.true, group=True,exclude_zero=True)
         value = mr @ 5
-        self.assertEqual(value, 0.4533)
+        self.assertEqual(value, 0.2)
 
     def test_map(self):
         ap = topk.MAP(predict=self.predict, true=self.true, group=True)

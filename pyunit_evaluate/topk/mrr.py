@@ -1,4 +1,5 @@
-from .edges import Edges
+from copy import deepcopy
+
 from .topk import TopK
 
 
@@ -17,20 +18,18 @@ class MRR(TopK):
 
     def __matmul__(self, k: int) -> float:
         values = []
+        neg_predict = self.predict.filter(key=lambda x: self.true.has_edge(x).score == 0)
+        if not neg_predict:
+            return 0
 
         for key, edges in self.true.group('node1').items():
-            predict = [edge for edge in self.predict if edge.node1 == key]
-            predict = Edges(predict)
-            neg_predict = predict.filter(key=lambda x: edges.has_edge(x).score == 0)
-            if not neg_predict:
-                continue
-
             r = 0
+            predict = deepcopy(neg_predict)
             for idx, item in enumerate(edges.items(), start=1):
                 if item.score == 1:
-                    pos_edge = predict.has_edge(item)
-                    neg_predict.append(pos_edge)
-                    predict_k = neg_predict.sort(key=lambda x: x.score, reverse=True)[:k]
+                    pos_edge = self.predict.has_edge(item)
+                    predict.append(pos_edge)
+                    predict_k = predict.sort(key=lambda x: x.score, reverse=True)[:k]
 
                     if not predict_k.has_edge(item):
                         continue
